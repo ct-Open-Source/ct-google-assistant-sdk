@@ -95,6 +95,12 @@ def turn_off_led():
     speak_tts("Turning LED off.")
     GPIO.output(led_pin, False)
 
+# turn_on_led schaltet die LED ab.
+def shutdown():
+    print("Shutdown")
+    speak_tts("Powering off.")
+    call(["sudo", "poweroff"])
+
 # sagt die IP-Adresse an
 def say_ip_address():
     try:
@@ -141,6 +147,10 @@ def process_event(event, assistant):
          elif command == 'what\'s your device ip':
              assistant.stop_conversation()
              say_ip_address()
+         elif command == 'shut yourself down':
+             assistant.stop_conversation()
+             shutdown()
+        
      # Nach dem Ende der Konversation wartet Google wieder auf das Hotword. Ist das Argument 'with_follow_on_turn' wahr,
      # ist der Dialog noch nicht beendet und Google wartet auf weitere Anweisungen vom Nutzer.
      if (event.type == EventType.ON_CONVERSATION_TURN_FINISHED and
