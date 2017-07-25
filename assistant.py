@@ -120,7 +120,7 @@ def process_event(event, assistant):
 #
 #    # Wurde das Hotword erkannt, beginnt Google mit der Aufzeichnung und Erkennung des Textes
      if event.type == EventType.ON_CONVERSATION_TURN_STARTED:
-        call(["play", "-q", "ding.mp3"])
+        call(["mpg123", "ding.mp3"])
         print("Bitte sprechen Sie jetzt.")
 #
 #    # Nach dem Ende der Spracheingabe verarbeitet der Assistant den Text.

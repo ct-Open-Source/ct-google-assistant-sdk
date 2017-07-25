@@ -84,7 +84,7 @@ def listen(assistant):
 def speak_tts(ttstext, language="en-us"):
     tts = gTTS(text=ttstext, lang=language)
     tts.save("answer.mp3")
-    call(["play", "-q", "answer.mp3"])
+    call(["mpg123", "answer.mp3"])
 
 
 # turn_on_led schaltet die LED an.
