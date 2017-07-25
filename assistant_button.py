@@ -19,8 +19,6 @@
 
 import argparse
 import os.path
-import os
-import re
 import json
 from time import sleep
 
@@ -61,17 +59,24 @@ muted = False
 import threading
 
 
-
 # Die Funktion mute läuft als Thread und schaltet bei einem Knopfdruck den Assistant stumm.
-def mute(assistant):
+def mute(assistant, toggle=True, value=True):
     global muted
+    if (toggle):
+        print("Muting")
+        muted = not muted
+        assistant.set_mic_mute(muted)
+    else:
+        print("Mute wird auf %s gesetzt" % value)
+
+
+def listen(assistant):
     while True:
         GPIO.wait_for_edge(button_pin, GPIO.RISING)
         sleep(.5)
-        print("Mute Button pressed")
-        muted = not muted
-        assistant.set_mic_mute(muted)
-
+        print("Trigger button gedrückt")
+        mute(assistant)
+        assistant.start_conversation()
 
 # speak_tts erzeugt aus einem übergebenen Text mittel Googles TTS-Dienst eine
 # MP3-Datei. Diese wird von sox abgespielt.
@@ -95,22 +100,6 @@ def turn_off_led():
     speak_tts("Turning LED off.")
     GPIO.output(led_pin, False)
 
-# sagt die IP-Adresse an
-def say_ip_address():
-    try:
-        ethernet = re.search(re.compile(r'(?<=inet )(.*)(?=\/)', re.M), os.popen('ip addr show eth0').read()).groups()[0]
-    except:
-        ethernet = "none"
-    
-    try:
-        wifi = re.search(re.compile(r'(?<=inet )(.*)(?=\/)', re.M), os.popen('ip addr show wlan0').read()).groups()[0]
-    except:
-        wifi = "none"
-
-    print("IPs: " + ethernet+ " " + wifi )
-    speak_tts("The WiFi address is "+wifi+". The wired address is " +
-              ethernet)
-    GPIO.output(led_pin, False)
 
 ## process_event verarbeitet die von der Google-Assistant-Instanz zurückgegebenen Events.
 def process_event(event, assistant):
@@ -131,22 +120,20 @@ def process_event(event, assistant):
  
          # Falls der erkannte Text einem der lokalen Befehle entspricht, wird der Dialog mit dem Assistant abgebrochen
          # und die zugehörige lokale Funktion ausgeführt.
-         command = str.lower(command)
-         if command == 'turn led on':
+         if command == 'turn LED on':
              assistant.stop_conversation()
              turn_on_led()
-         elif command == 'turn led off':
+         elif command == 'turn LED off':
              assistant.stop_conversation()
              turn_off_led()
-         elif command == 'what\'s your device ip':
-             assistant.stop_conversation()
-             say_ip_address()
+
      # Nach dem Ende der Konversation wartet Google wieder auf das Hotword. Ist das Argument 'with_follow_on_turn' wahr,
      # ist der Dialog noch nicht beendet und Google wartet auf weitere Anweisungen vom Nutzer.
      if (event.type == EventType.ON_CONVERSATION_TURN_FINISHED and
          event.args and not event.args['with_follow_on_turn']):
-         print("Warte auf Hotword")
-     
+             muted = False
+             mute(assistant)
+
      # Falls der Assistant ein Mute-Event auslöst, wird ein Hinweis ausgegeben
      # und die LED entspreched umgeschaltet.
      if (event.type == EventType.ON_MUTED_CHANGED):
@@ -178,10 +165,12 @@ def main():
         # verarbeitet.
         with Assistant(credentials) as assistant:
             # Started den Thread, der auf den Mute-Button reagiert
-            button_thread = threading.Thread(target=mute, args=(assistant,))
+            button_thread = threading.Thread(target=listen, args=(assistant,))
             button_thread.start()
             print("Warte auf Hotword")
-            for event in assistant.start():
+            eventlist = assistant.start()
+            mute(assistant)
+            for event in eventlist:
                 process_event(event, assistant)
 
 if __name__ == '__main__':
