@@ -1,4 +1,4 @@
 # ct-google-assistant-sdk
-A demo project to run the Google Assistant SDK on a Raspberry Pi. It features a mute button and two LEDs.
+Ein Demoprogramm für einen angepassten Google Assistant. Das Projekt ist ein Beispiel für den Artikel Okay, Raspi! in der c't 17/17 (www.ct.de).
 
-Follow the instructions on https://developers.google.com/assistant/sdk/prototype/getting-started-pi-python/ to get the basics running.
+An example programm for a customized Google Assistant. The project was presented in the article "Okay, Raspi!" in c't 17/17 (www.ct.de).
